@@ -1,0 +1,2 @@
+# fastq-merger
+Merge fastq
