@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::env;
 use std::fs::File;
 use std::io::{LineWriter, Write};
@@ -6,14 +6,14 @@ use std::io::{LineWriter, Write};
 use regex::Regex;
 use walkdir::WalkDir;
 
-pub struct Init<'a> {
+pub struct Finder<'a> {
     path: &'a str,
     len: usize,
     sep: char,
     fname: String,
 }
 
-impl<'a> Init<'a> {
+impl<'a> Finder<'a> {
     pub fn new(path: &'a str, len: usize, sep: char) -> Self {
         Self {
             path,
@@ -23,7 +23,7 @@ impl<'a> Init<'a> {
         }
     }
 
-    pub fn initialize_input_file(&mut self) {
+    pub fn generate_input_file(&mut self) {
         let output = File::create(&self.fname).expect("FILE EXISTS.");
         let mut line = LineWriter::new(output);
         let seqs = self.find_files();
@@ -35,8 +35,8 @@ impl<'a> Init<'a> {
         self.print_saved_path();
     }
 
-    fn find_files(&self) -> HashMap<String, String> {
-        let mut seq = HashMap::new();
+    fn find_files(&self) -> BTreeMap<String, String> {
+        let mut seq = BTreeMap::new();
         WalkDir::new(&self.path)
             .into_iter()
             .filter_map(|ok| ok.ok())
@@ -110,10 +110,10 @@ mod test {
 
     #[test]
     fn regex_test() {
-        let path = "test_files/init/";
+        let path = "test_files/Finder/";
         let len = 3;
         let sep = '_';
-        let re = Init::new(path, len, sep);
+        let re = Finder::new(path, len, sep);
         let zipped_read = "sample_buno_clean_l001_read1_001.fastq.gz";
         let unzipped_read = "sample_buno_clean_l001_read1_001.fastq";
 
@@ -123,10 +123,10 @@ mod test {
 
     #[test]
     fn regex_false_test() {
-        let path = "test_files/init/";
+        let path = "test_files/Finder/";
         let len = 3;
         let sep = '_';
-        let re = Init::new(path, len, sep);
+        let re = Finder::new(path, len, sep);
         let zipped_read = "sample_buno_clean_read1_001.fastq.gz";
         let unzipped_read = "sample_buno_clean_read1_001.fastq";
 
@@ -136,10 +136,10 @@ mod test {
 
     #[test]
     fn construct_id_test() {
-        let path = "test_files/init/";
+        let path = "test_files/Finder/";
         let len = 3;
         let sep = '_';
-        let re = Init::new(path, len, sep);
+        let re = Finder::new(path, len, sep);
 
         let fnames = "sample_buno_ABCD123_read1.fastq.gz";
 
@@ -151,10 +151,10 @@ mod test {
     #[test]
     #[should_panic]
     fn construct_id_panic_test() {
-        let path = "test_files/init/";
+        let path = "test_files/Finder/";
         let len = 4;
         let sep = '_';
-        let re = Init::new(path, len, sep);
+        let re = Finder::new(path, len, sep);
         let fnames = "sample_buno_ABCD123_read1.fastq.gz";
 
         re.construct_id(fnames);
