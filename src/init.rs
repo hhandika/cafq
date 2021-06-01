@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::{LineWriter, Write};
@@ -28,21 +29,40 @@ impl<'a> Init<'a> {
         self.get_fnames();
         let output = File::create(&self.fname).expect("FILE EXISTS.");
         let mut line = LineWriter::new(output);
+        let seqs = self.find_files();
         self.write_header(&mut line);
+        seqs.iter().for_each(|(id, path)| {
+            self.write_content(&mut line, &id, &path);
+        });
+
+        self.print_saved_path();
+    }
+
+    fn find_files(&self) -> HashMap<String, String> {
+        let mut seq = HashMap::new();
         WalkDir::new(&self.path)
             .into_iter()
             .filter_map(|ok| ok.ok())
             .filter(|e| e.file_type().is_file())
             .for_each(|e| {
-                let path = e.path().parent().unwrap();
-                let fname = e.path().file_name().unwrap().to_string_lossy();
+                let path = e.path();
+                let fname = path.file_name().unwrap().to_string_lossy();
                 if self.re_matches_lazy(&fname) {
                     let id = self.construct_id(&fname);
-                    let full_path = String::from(path.canonicalize().unwrap().to_string_lossy());
-                    self.write_content(&mut line, &id, &full_path);
+                    let full_path = String::from(
+                        path.parent()
+                            .unwrap()
+                            .canonicalize()
+                            .unwrap()
+                            .to_string_lossy(),
+                    );
+                    if !seq.contains_key(&id) {
+                        seq.insert(id, full_path);
+                    }
                 }
             });
-        self.print_saved_path();
+
+        seq
     }
 
     fn get_fnames(&mut self) {
@@ -126,8 +146,8 @@ mod test {
         let len = 3;
         let sep = '_';
         let re = Init::new(path, len, sep, true);
-        let zipped_read = "sample_buno_clean_read1_lane1_001.fastq.gz";
-        let unzipped_read = "sample_buno_clean_read1_l1_001.fastq";
+        let zipped_read = "sample_buno_clean_read1_001.fastq.gz";
+        let unzipped_read = "sample_buno_clean_read1_001.fastq";
 
         assert_eq!(false, re.re_matches_lazy(zipped_read));
         assert_eq!(false, re.re_matches_lazy(unzipped_read));
