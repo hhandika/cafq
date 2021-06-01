@@ -10,23 +10,20 @@ pub struct Init<'a> {
     path: &'a str,
     len: usize,
     sep: char,
-    iscsv: bool,
     fname: String,
 }
 
 impl<'a> Init<'a> {
-    pub fn new(path: &'a str, len: usize, sep: char, iscsv: bool) -> Self {
+    pub fn new(path: &'a str, len: usize, sep: char) -> Self {
         Self {
             path,
             len,
             sep,
-            iscsv,
-            fname: String::from("yap-qc_input"),
+            fname: String::from("yap-merge_input.conf"),
         }
     }
 
     pub fn initialize_input_file(&mut self) {
-        self.get_fnames();
         let output = File::create(&self.fname).expect("FILE EXISTS.");
         let mut line = LineWriter::new(output);
         let seqs = self.find_files();
@@ -65,28 +62,12 @@ impl<'a> Init<'a> {
         seq
     }
 
-    fn get_fnames(&mut self) {
-        if self.iscsv {
-            self.fname.push_str(".csv");
-        } else {
-            self.fname.push_str(".conf");
-        }
-    }
-
     fn write_header<W: Write>(&self, line: &mut W) {
-        if self.iscsv {
-            writeln!(line, "id,new_name").unwrap();
-        } else {
-            writeln!(line, "[seqs]").unwrap();
-        }
+        writeln!(line, "[seqs]").unwrap();
     }
 
     fn write_content<W: Write>(&self, line: &mut W, id: &str, full_path: &str) {
-        if self.iscsv {
-            writeln!(line, "{}", id).unwrap();
-        } else {
-            writeln!(line, "{}:{}/", id, full_path).unwrap();
-        }
+        writeln!(line, "{}:{}/", id, full_path).unwrap();
     }
 
     fn print_saved_path(&self) {
@@ -132,7 +113,7 @@ mod test {
         let path = "test_files/init/";
         let len = 3;
         let sep = '_';
-        let re = Init::new(path, len, sep, true);
+        let re = Init::new(path, len, sep);
         let zipped_read = "sample_buno_clean_l001_read1_001.fastq.gz";
         let unzipped_read = "sample_buno_clean_l001_read1_001.fastq";
 
@@ -145,7 +126,7 @@ mod test {
         let path = "test_files/init/";
         let len = 3;
         let sep = '_';
-        let re = Init::new(path, len, sep, true);
+        let re = Init::new(path, len, sep);
         let zipped_read = "sample_buno_clean_read1_001.fastq.gz";
         let unzipped_read = "sample_buno_clean_read1_001.fastq";
 
@@ -158,7 +139,7 @@ mod test {
         let path = "test_files/init/";
         let len = 3;
         let sep = '_';
-        let re = Init::new(path, len, sep, true);
+        let re = Init::new(path, len, sep);
 
         let fnames = "sample_buno_ABCD123_read1.fastq.gz";
 
@@ -173,7 +154,7 @@ mod test {
         let path = "test_files/init/";
         let len = 4;
         let sep = '_';
-        let re = Init::new(path, len, sep, true);
+        let re = Init::new(path, len, sep);
         let fnames = "sample_buno_ABCD123_read1.fastq.gz";
 
         re.construct_id(fnames);
