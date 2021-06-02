@@ -135,7 +135,7 @@ impl Merge {
             decoder
                 .read_to_end(&mut content)
                 .expect("CANNOT READ FILES");
-            gz.write_all(&mut content).unwrap();
+            gz.write_all(&content).unwrap();
         });
 
         gz.finish().unwrap();
