@@ -33,7 +33,7 @@ fn process_files(contents: &[String]) {
             .map(|entry| entry.trim().to_string())
             .collect::<Vec<String>>();
         assert!(content.len() > 1, "NOT ENOUGH DATA");
-        let mut reads = Reads::new();
+        let mut reads = Merge::new();
         reads.id = String::from(&content[0]);
         reads.path = String::from(&content[1]);
         let samples = reads.glob_samples();
@@ -44,14 +44,14 @@ fn process_files(contents: &[String]) {
     });
 }
 
-struct Reads {
+struct Merge {
     id: String,
     path: String,
     read_1: Vec<PathBuf>,
     read_2: Vec<PathBuf>,
 }
 
-impl Reads {
+impl Merge {
     fn new() -> Self {
         Self {
             id: String::new(),
