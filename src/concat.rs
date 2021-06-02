@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::io::{self, BufReader, Result, Write};
@@ -12,52 +13,54 @@ use regex::Regex;
 
 use crate::utils;
 
-pub fn parse_input_file(path: &str) {
+pub fn concat_fastq_files(path: &str) {
+    let contents = parse_input_file(path);
+    contents.par_iter().for_each(|(id, path)| {
+        let mut reads = Merge::new(id, path);
+        let samples = reads.glob_samples();
+        reads.match_path_to_reads(&samples);
+        reads.sort_results();
+        reads.concat_lanes_all();
+        reads.print_results().expect("CANNOT PRINT TO STDOUT");
+    });
+
+    println!("COMPLETED!\n");
+}
+
+fn parse_input_file(path: &str) -> HashMap<String, String> {
     let file = File::open(path).unwrap();
     let buff = BufReader::new(file);
-    let mut contents = Vec::new();
+    let mut contents = HashMap::new();
 
     buff.lines()
         .filter_map(|ok| ok.ok())
         .skip(1)
         .for_each(|line| {
-            contents.push(line);
+            let content = line
+                .split(':')
+                .map(|entry| entry.trim().to_string())
+                .collect::<Vec<String>>();
+            assert!(content.len() == 2, "INVALID INPUT FORMAT");
+            let id = content[0];
+            let path = content[1];
+            contents.entry(id).or_insert(path);
         });
 
-    process_files(&contents);
+    contents
 }
 
-fn process_files(contents: &[String]) {
-    contents.par_iter().for_each(|line| {
-        let content = line
-            .split(':')
-            .map(|entry| entry.trim().to_string())
-            .collect::<Vec<String>>();
-        assert!(content.len() > 1, "NOT ENOUGH DATA");
-        let mut reads = Merge::new();
-        reads.id = String::from(&content[0]);
-        reads.path = String::from(&content[1]);
-        let samples = reads.glob_samples();
-        reads.match_path_to_reads(&samples);
-        reads.sort_results();
-        reads.concat_lanes_all();
-        reads.print_header();
-        reads.print_results().expect("CANNOT PRINT TO STDOUT");
-    });
-}
-
-struct Merge {
-    id: String,
-    path: String,
+struct Merge<'a> {
+    id: &'a str,
+    path: &'a str,
     read_1: Vec<PathBuf>,
     read_2: Vec<PathBuf>,
 }
 
-impl Merge {
-    fn new() -> Self {
+impl<'a> Merge<'a> {
+    fn new(id: &'a str, path: &'a str) -> Self {
         Self {
-            id: String::new(),
-            path: String::new(),
+            id,
+            path,
             read_1: Vec::new(),
             read_2: Vec::new(),
         }
@@ -109,30 +112,9 @@ impl Merge {
         self.read_2.sort();
     }
 
-    fn print_results(&self) -> Result<()> {
-        let io = io::stdout();
-        let mut handle = io::BufWriter::new(io);
-        writeln!(handle, "\x1b[0;33mREAD 1:\x1b[0m")?;
-        self.read_1
-            .iter()
-            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
-
-        writeln!(handle, "\x1b[0;33mREAD 2:\x1b[0m")?;
-        self.read_2
-            .iter()
-            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
-
-        Ok(())
-    }
-
-    fn print_header(&self) {
-        let len = 80;
-        utils::print_divider(&self.id, len);
-    }
-
     fn concat_lanes_all(&self) {
-        let fname_r1 = format!("{}_R1.fastq.gz", &self.id);
-        let fname_r2 = format!("{}_R2.fastq.gz", &self.id);
+        let fname_r1 = self.get_concat_name_r1();
+        let fname_r2 = self.get_concat_name_r2();
         self.concat_lanes(&self.read_1, &fname_r1);
         self.concat_lanes(&self.read_2, &fname_r2);
     }
@@ -155,5 +137,39 @@ impl Merge {
         });
 
         gz.finish().unwrap();
+    }
+
+    fn print_results(&self) -> Result<()> {
+        let io = io::stdout();
+        let mut handle = io::BufWriter::new(io);
+        self.print_header();
+        writeln!(handle, "\x1b[0;33mREAD 1:\x1b[0m")?;
+        self.read_1
+            .iter()
+            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
+        writeln!(handle);
+        writeln!(handle, "\x1b[0;33mREAD 2:\x1b[0m")?;
+        self.read_2
+            .iter()
+            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
+        writeln!(handle)?;
+        writeln!(handle, "\x1b[0;33mResults 2:\x1b[0m")?;
+        writeln!(handle, "Read 1: {}", self.get_concat_name_r1())?;
+        writeln!(handle, "Read 2: {}", self.get_concat_name_r2())?;
+        writeln!(handle)?;
+        Ok(())
+    }
+
+    fn print_header(&self) {
+        let len = 80;
+        utils::print_divider(&self.id, len);
+    }
+
+    fn get_concat_name_r1(&self) -> String {
+        format!("{}_R1.fastq.gz", &self.id)
+    }
+
+    fn get_concat_name_r2(&self) -> String {
+        format!("{}_R2.fastq.gz", &self.id)
     }
 }

@@ -85,5 +85,5 @@ fn merge_fastq(matches: &ArgMatches, version: &str) {
         .value_of("input")
         .expect("IS NOT A VALID INPUT FILE");
     println!("Starting cafq v{}", version);
-    concat::parse_input_file(input);
+    concat::concat_fastq_files(input);
 }
