@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::io::{self, BufReader, Result, Write};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use flate2::bufread::MultiGzDecoder;
 use flate2::write::GzEncoder;
@@ -13,11 +13,11 @@ use regex::Regex;
 
 use crate::utils;
 
-pub fn concat_fastq_files(path: &str) {
+pub fn concat_fastq_files(path: &str, outdir: &str) {
     let contents = parse_input_file(path);
     println!("Total samples: {}", contents.len());
     contents.par_iter().for_each(|(id, path)| {
-        let mut reads = Merge::new(id, path);
+        let mut reads = Concat::new(id, path, outdir);
         let samples = reads.glob_samples();
         reads.match_path_to_reads(&samples);
         reads.sort_results();
@@ -48,18 +48,20 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
     contents
 }
 
-struct Merge<'a> {
+struct Concat<'a> {
     id: &'a str,
     path: &'a str,
     read_1: Vec<PathBuf>,
     read_2: Vec<PathBuf>,
+    outdir: PathBuf,
 }
 
-impl<'a> Merge<'a> {
-    fn new(id: &'a str, path: &'a str) -> Self {
+impl<'a> Concat<'a> {
+    fn new(id: &'a str, path: &'a str, output: &str) -> Self {
         Self {
             id,
             path,
+            outdir: PathBuf::from(output),
             read_1: Vec::new(),
             read_2: Vec::new(),
         }
@@ -119,9 +121,8 @@ impl<'a> Merge<'a> {
     }
 
     fn concat_lanes(&self, read: &[PathBuf], fname: &str) {
-        let dir = Path::new("raw_reads").join(&self.id);
-        fs::create_dir_all(&dir).expect("CANNOT CREATE DIR");
-        let path = dir.join(fname);
+        let path = self.get_output_fname(fname);
+        fs::create_dir_all(&path.parent().unwrap()).expect("CANNOT CREATE DIR");
         let save = File::create(path).expect("CANNOT CREATE FILE");
         let mut gz = GzEncoder::new(save, Compression::default());
         read.iter().for_each(|line| {
@@ -138,6 +139,18 @@ impl<'a> Merge<'a> {
         gz.finish().unwrap();
     }
 
+    fn get_output_fname(&self, fname: &str) -> PathBuf {
+        self.outdir.join(&self.id).join(fname)
+    }
+
+    fn get_concat_name_r1(&self) -> String {
+        format!("{}_R1.fastq.gz", &self.id)
+    }
+
+    fn get_concat_name_r2(&self) -> String {
+        format!("{}_R2.fastq.gz", &self.id)
+    }
+
     fn print_results(&self) -> Result<()> {
         let io = io::stdout();
         let mut handle = io::BufWriter::new(io);
@@ -152,9 +165,19 @@ impl<'a> Merge<'a> {
             .iter()
             .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
         writeln!(handle)?;
-        writeln!(handle, "\x1b[0;33mResults 2:\x1b[0m")?;
-        writeln!(handle, "Read 1: {}", self.get_concat_name_r1())?;
-        writeln!(handle, "Read 2: {}", self.get_concat_name_r2())?;
+        writeln!(handle, "\x1b[0;33mResults:\x1b[0m")?;
+        writeln!(
+            handle,
+            "Read 1: {}",
+            self.get_output_fname(&self.get_concat_name_r1())
+                .to_string_lossy()
+        )?;
+        writeln!(
+            handle,
+            "Read 2: {}",
+            self.get_output_fname(&self.get_concat_name_r2())
+                .to_string_lossy()
+        )?;
         writeln!(handle)?;
         Ok(())
     }
@@ -163,19 +186,12 @@ impl<'a> Merge<'a> {
         let len = 80;
         utils::print_divider(&self.id, len);
     }
-
-    fn get_concat_name_r1(&self) -> String {
-        format!("{}_R1.fastq.gz", &self.id)
-    }
-
-    fn get_concat_name_r2(&self) -> String {
-        format!("{}_R2.fastq.gz", &self.id)
-    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::path::Path;
 
     #[test]
     fn parse_input_test() {
@@ -206,7 +222,7 @@ mod test {
     fn regex_lanes_read1_test() {
         let fname = "genus_epithet_unknown_l001_read1_001.fastq.gz";
         let fname2 = "genus_epithet_unknown_l001_read2_001.fastq.gz";
-        let test = Merge::new(".", ".");
+        let test = Concat::new(".", ".", ".");
         assert_eq!(true, test.re_matches_r1(fname));
         assert_eq!(false, test.re_matches_r1(fname2));
     }
@@ -215,8 +231,20 @@ mod test {
     fn regex_lanes_read2_test() {
         let fname = "genus_epithet_unknown_l001_read1_001.fastq.gz";
         let fname2 = "genus_epithet_unknown_l001_read2_001.fastq.gz";
-        let test = Merge::new(".", ".");
+        let test = Concat::new(".", ".", ".");
         assert_eq!(false, test.re_matches_r2(fname));
         assert_eq!(true, test.re_matches_r2(fname2));
+    }
+
+    #[test]
+    fn output_fname_test() {
+        let id = "Genus_ephithet_unknown";
+        let path = ".";
+        let outdir = "raw_reads";
+        let fname = "Genus_ephithet_unknown_R1.fastq.gq";
+        let res = Path::new(&outdir).join(&id).join(fname);
+
+        let concat = Concat::new(id, path, outdir);
+        assert_eq!(res, concat.get_output_fname(fname));
     }
 }

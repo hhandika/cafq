@@ -50,6 +50,15 @@ fn get_args(version: &str) -> ArgMatches {
                         .takes_value(true)
                         .default_value("cafq-input.conf")
                         .value_name("INPUT"),
+                )
+                .arg(
+                    Arg::with_name("output")
+                        .short("o")
+                        .long("output")
+                        .help("Specifies an output directory")
+                        .takes_value(true)
+                        .default_value("raw_reads")
+                        .value_name("INPUT"),
                 ),
         )
         .get_matches()
@@ -84,6 +93,9 @@ fn merge_fastq(matches: &ArgMatches, version: &str) {
     let input = matches
         .value_of("input")
         .expect("IS NOT A VALID INPUT FILE");
-    println!("Starting cafq v{}", version);
-    concat::concat_fastq_files(input);
+    let output = matches
+        .value_of("output")
+        .expect("IS NOT A VALID INPUT FILE");
+    println!("Starting cafq v{}...\n", version);
+    concat::concat_fastq_files(input, output);
 }
