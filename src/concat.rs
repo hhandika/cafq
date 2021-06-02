@@ -15,6 +15,7 @@ use crate::utils;
 
 pub fn concat_fastq_files(path: &str) {
     let contents = parse_input_file(path);
+    println!("Total samples: {}", contents.len());
     contents.par_iter().for_each(|(id, path)| {
         let mut reads = Merge::new(id, path);
         let samples = reads.glob_samples();
@@ -31,7 +32,6 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
     let file = File::open(path).unwrap();
     let buff = BufReader::new(file);
     let mut contents = HashMap::new();
-    let mut counts = 0;
     buff.lines()
         .filter_map(|ok| ok.ok())
         .skip(1)
@@ -44,9 +44,7 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
             let id = content[0].clone();
             let path = content[1].clone();
             contents.entry(id).or_insert(path); // Avoid duplicates
-            counts += 1;
         });
-    println!("Total samples: {}", counts);
     contents
 }
 
@@ -172,5 +170,26 @@ impl<'a> Merge<'a> {
 
     fn get_concat_name_r2(&self) -> String {
         format!("{}_R2.fastq.gz", &self.id)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parse_input_test() {
+        let path = "test_files/input_test.conf";
+
+        let contents = parse_input_file(path);
+        assert_eq!(2, contents.len());
+    }
+
+    #[test]
+    fn parse_duplicate_input_test() {
+        let path = "test_files/input_duplicate_test.conf";
+
+        let contents = parse_input_file(path);
+        assert_eq!(2, contents.len());
     }
 }
