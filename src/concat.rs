@@ -31,7 +31,7 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
     let file = File::open(path).unwrap();
     let buff = BufReader::new(file);
     let mut contents = HashMap::new();
-
+    let mut counts = 0;
     buff.lines()
         .filter_map(|ok| ok.ok())
         .skip(1)
@@ -44,8 +44,9 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
             let id = content[0].clone();
             let path = content[1].clone();
             contents.entry(id).or_insert(path); // Avoid duplicates
+            counts += 1;
         });
-
+    println!("Total samples: {}", counts);
     contents
 }
 
