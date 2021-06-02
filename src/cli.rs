@@ -48,7 +48,7 @@ fn get_args(version: &str) -> ArgMatches {
                         .long("input")
                         .help("Specifies an input file")
                         .takes_value(true)
-                        .default_value("yap-merge_input.conf")
+                        .default_value("rat-input.conf")
                         .value_name("INPUT"),
                 ),
         )

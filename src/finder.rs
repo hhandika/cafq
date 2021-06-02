@@ -19,7 +19,7 @@ impl<'a> Finder<'a> {
             path,
             len,
             sep,
-            fname: String::from("yap-merge_input.conf"),
+            fname: String::from("rat-input.conf"),
         }
     }
 
