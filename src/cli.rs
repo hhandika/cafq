@@ -6,7 +6,7 @@ use crate::finder;
 fn get_args(version: &str) -> ArgMatches {
     App::new("cafq")
         .version(version)
-        .about("A tool to concat multi-lane fastq reads")
+        .about("A tool to concat multi-lane fastq files")
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(
             App::new("new")
@@ -15,7 +15,7 @@ fn get_args(version: &str) -> ArgMatches {
                     Arg::with_name("dir")
                         .short("d")
                         .long("dir")
-                        .help("Specify input directory")
+                        .help("Specifies input directory")
                         .takes_value(true)
                         .default_value("raw_reads")
                         .value_name("DIR"),
@@ -24,7 +24,7 @@ fn get_args(version: &str) -> ArgMatches {
                     Arg::with_name("len")
                         .short("l")
                         .long("len")
-                        .help("Word lengths")
+                        .help("Specifies word lengths (default: 4)")
                         .takes_value(true)
                         .default_value("4")
                         .value_name("LEN"),
@@ -33,7 +33,7 @@ fn get_args(version: &str) -> ArgMatches {
                     Arg::with_name("sep")
                         .short("s")
                         .long("sep")
-                        .help("Separator type")
+                        .help("Specifies the separator type (default: underscore)")
                         .takes_value(true)
                         .default_value("_")
                         .value_name("SEP"),
