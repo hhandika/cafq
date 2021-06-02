@@ -41,9 +41,9 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
                 .map(|entry| entry.trim().to_string())
                 .collect::<Vec<String>>();
             assert!(content.len() == 2, "INVALID INPUT FORMAT");
-            let id = content[0];
-            let path = content[1];
-            contents.entry(id).or_insert(path);
+            let id = content[0].clone();
+            let path = content[1].clone();
+            contents.entry(id).or_insert(path); // Avoid duplicates
         });
 
     contents
@@ -147,7 +147,7 @@ impl<'a> Merge<'a> {
         self.read_1
             .iter()
             .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
-        writeln!(handle);
+        writeln!(handle)?;
         writeln!(handle, "\x1b[0;33mREAD 2:\x1b[0m")?;
         self.read_2
             .iter()
