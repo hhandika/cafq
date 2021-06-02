@@ -1,7 +1,6 @@
 use std::fs::{self, File};
 use std::io::prelude::*;
-use std::io::BufReader;
-use std::io::Write;
+use std::io::{self, BufReader, Result, Write};
 use std::path::{Path, PathBuf};
 
 use flate2::bufread::MultiGzDecoder;
@@ -10,6 +9,8 @@ use flate2::Compression;
 use glob::{self, MatchOptions};
 use rayon::prelude::*;
 use regex::Regex;
+
+use crate::utils;
 
 pub fn parse_input_file(path: &str) {
     let file = File::open(path).unwrap();
@@ -40,7 +41,8 @@ fn process_files(contents: &[String]) {
         reads.match_path_to_reads(&samples);
         reads.sort_results();
         reads.concat_lanes_all();
-        reads.print_results();
+        reads.print_header();
+        reads.print_results().expect("CANNOT PRINT TO STDOUT");
     });
 }
 
@@ -107,11 +109,25 @@ impl Merge {
         self.read_2.sort();
     }
 
-    fn print_results(&self) {
-        println!("READ 1:");
-        self.read_1.iter().for_each(|file| println!("{:?}", file));
-        println!("READ 2:");
-        self.read_2.iter().for_each(|file| println!("{:?}", file));
+    fn print_results(&self) -> Result<()> {
+        let io = io::stdout();
+        let mut handle = io::BufWriter::new(io);
+        writeln!(handle, "\x1b[0;33mREAD 1:\x1b[0m")?;
+        self.read_1
+            .iter()
+            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
+
+        writeln!(handle, "\x1b[0;33mREAD 2:\x1b[0m")?;
+        self.read_2
+            .iter()
+            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
+
+        Ok(())
+    }
+
+    fn print_header(&self) {
+        let len = 80;
+        utils::print_divider(&self.id, len);
     }
 
     fn concat_lanes_all(&self) {

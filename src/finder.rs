@@ -19,7 +19,7 @@ impl<'a> Finder<'a> {
             path,
             len,
             sep,
-            fname: String::from("rat-input.conf"),
+            fname: String::from("cafq-input.conf"),
         }
     }
 

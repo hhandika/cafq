@@ -1,12 +1,12 @@
 use clap::{App, AppSettings, Arg, ArgMatches};
 
+use crate::concat;
 use crate::finder;
-use crate::merger;
 
 fn get_args(version: &str) -> ArgMatches {
-    App::new("RAT")
+    App::new("cafq")
         .version(version)
-        .about("A tool for fastq")
+        .about("A tool to concat multi-lane fastq reads")
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(
             App::new("new")
@@ -40,15 +40,15 @@ fn get_args(version: &str) -> ArgMatches {
                 ),
         )
         .subcommand(
-            App::new("merge")
-                .about("Merges lanes for each fastq read")
+            App::new("concat")
+                .about("Concatenates lanes for each fastq read")
                 .arg(
                     Arg::with_name("input")
                         .short("i")
                         .long("input")
                         .help("Specifies an input file")
                         .takes_value(true)
-                        .default_value("rat-input.conf")
+                        .default_value("cafq-input.conf")
                         .value_name("INPUT"),
                 ),
         )
@@ -59,7 +59,7 @@ pub fn parse_cli(version: &str) {
     let args = get_args(version);
     match args.subcommand() {
         ("new", Some(new_matches)) => new_input(new_matches),
-        ("merge", Some(merge_matches)) => merge_fastq(merge_matches),
+        ("concat", Some(merge_matches)) => merge_fastq(merge_matches, version),
         _ => unreachable!(),
     }
 }
@@ -80,9 +80,10 @@ fn new_input(matches: &ArgMatches) {
     init.generate_input_file();
 }
 
-fn merge_fastq(matches: &ArgMatches) {
+fn merge_fastq(matches: &ArgMatches, version: &str) {
     let input = matches
         .value_of("input")
         .expect("IS NOT A VALID INPUT FILE");
-    merger::parse_input_file(input);
+    println!("Starting cafq v{}", version);
+    concat::parse_input_file(input);
 }

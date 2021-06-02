@@ -1,6 +1,6 @@
 mod cli;
+mod concat;
 mod finder;
-mod merger;
 mod utils;
 
 #[macro_use]
