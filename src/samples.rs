@@ -46,13 +46,7 @@ impl<'a> Finder<'a> {
                 let fname = path.file_name().unwrap().to_string_lossy();
                 if self.re_matches_lazy(&fname) {
                     let id = self.construct_id(&fname);
-                    let full_path = String::from(
-                        path.parent()
-                            .unwrap()
-                            .canonicalize()
-                            .unwrap()
-                            .to_string_lossy(),
-                    );
+                    let full_path = String::from(path.parent().unwrap().to_string_lossy());
                     if !seq.contains_key(&id) {
                         seq.insert(id, full_path);
                     }
