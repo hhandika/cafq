@@ -4,7 +4,7 @@ use crate::concat;
 use crate::finder;
 
 fn get_args(version: &str) -> ArgMatches {
-    App::new("cafq")
+    App::new("CaFq")
         .version(version)
         .about("A tool to concat multi-lane fastq files")
         .setting(AppSettings::SubcommandRequiredElseHelp)
