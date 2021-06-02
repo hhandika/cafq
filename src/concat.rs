@@ -27,8 +27,7 @@ pub fn concat_fastq_files(path: &str, outdir: &str) {
         reads.concat_lanes_all();
         reads.print_results().expect("CANNOT PRINT TO STDOUT");
     });
-    spin.finish();
-    println!("COMPLETED!\n");
+    spin.finish_with_message("COMPLETED!\n");
 }
 
 fn parse_input_file(path: &str) -> HashMap<String, String> {
