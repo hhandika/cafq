@@ -1,8 +1,8 @@
-# fastq-merger
+# CaFq
 
 [![Build Status](https://www.travis-ci.com/hhandika/fastq-merger.svg?branch=main)](https://www.travis-ci.com/hhandika/fastq-merger)
 
-A tool to concat fastq reads. The runtime is slower than using `cat file_L001_R1.fastq.gz file_L002_R1.fastq.gz > file_R2.fastq.gz`, but it allows for concatenating fastq in nested directory and easy to use. See below:
+CaFq is a command-line tool to concat fastq reads. The runtime is slower than concatenating gunzipped fastq files using the `cat` command, such as: `cat file_L001_R1.fastq.gz file_L002_R1.fastq.gz > file_R2.fastq.gz`. The app, however, allows for batch concatenating fastq files in nested directories with minimal effort (zero Bash coding skill needed) and a better control over your files (less chance to make mistakes that can cause losing data). The final file is typically smaller than `cat`.
 
 ## Installation
 
@@ -12,17 +12,17 @@ To install, please install [the Rust Compiler](https://www.rust-lang.org/learn/g
 cargo install cargo install --git https://github.com/hhandika/cafq
 ```
 
-Confirm the program properly installed:
+Confirm the app properly installed:
 
 ```
 cafq --version
 ```
 
-It should show the program version.
+It should show the app version.
 
 ## Usages
 
-To find the files and create input for the program:
+To find the files and create input for the app:
 
 ```
 cafq new -d [your-parent-sequence-directory]
