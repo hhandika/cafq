@@ -1,3 +1,4 @@
+mod merger;
 mod samples;
 
 #[macro_use]
@@ -9,4 +10,7 @@ fn main() {
     let sep = '_';
     let mut init = samples::Finder::new(path, len, sep);
     init.generate_input_file();
+
+    let input = "yap-merge_input.conf";
+    merger::parse_input_file(input);
 }
