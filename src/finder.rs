@@ -27,7 +27,7 @@ impl<'a> Finder<'a> {
         let output = File::create(&self.fname).expect("FILE EXISTS.");
         let mut line = LineWriter::new(output);
         let seqs = self.find_files();
-        self.write_header(&mut line);
+        self.write_header(&mut line, seqs.len());
         seqs.iter().for_each(|(id, path)| {
             self.write_content(&mut line, &id, &path);
         });
@@ -61,8 +61,8 @@ impl<'a> Finder<'a> {
         seq
     }
 
-    fn write_header<W: Write>(&self, line: &mut W) {
-        writeln!(line, "[seqs]").unwrap();
+    fn write_header<W: Write>(&self, line: &mut W, len: usize) {
+        writeln!(line, "[seqs_id, path] Total samples: {}", len).unwrap();
     }
 
     fn write_content<W: Write>(&self, line: &mut W, id: &str, full_path: &str) {
