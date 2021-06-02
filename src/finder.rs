@@ -31,7 +31,7 @@ impl<'a> Finder<'a> {
         seqs.iter().for_each(|(id, path)| {
             self.write_content(&mut line, &id, &path);
         });
-
+        println!("Total samples: {}", seqs.len());
         self.print_saved_path();
     }
 
