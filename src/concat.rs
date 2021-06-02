@@ -130,8 +130,9 @@ impl<'a> Concat<'a> {
     }
 
     fn concat_lanes(&self, read: &[PathBuf], fname: &str) {
-        let path = self.get_output_fname(fname);
-        fs::create_dir_all(&path.parent().unwrap()).expect("CANNOT CREATE DIR");
+        let dir = self.get_output_dir();
+        fs::create_dir_all(&dir).expect("CANNOT CREATE DIR");
+        let path = dir.join(fname);
         let save = File::create(path).expect("CANNOT CREATE FILE");
         let mut gz = GzEncoder::new(save, Compression::default());
         read.iter().for_each(|line| {
@@ -148,8 +149,8 @@ impl<'a> Concat<'a> {
         gz.finish().unwrap();
     }
 
-    fn get_output_fname(&self, fname: &str) -> PathBuf {
-        self.outdir.join(&self.id).join(fname)
+    fn get_output_dir(&self) -> PathBuf {
+        self.outdir.join(&self.id)
     }
 
     fn get_concat_name_r1(&self) -> String {
@@ -176,17 +177,10 @@ impl<'a> Concat<'a> {
         });
         writeln!(handle)?;
         writeln!(handle, "\x1b[0;33mResults:\x1b[0m")?;
-        writeln!(
-            handle,
-            "Read 1: {}",
-            self.get_output_fname(&self.get_concat_name_r1()).display()
-        )?;
-        writeln!(
-            handle,
-            "Read 2: {}",
-            self.get_output_fname(&self.get_concat_name_r2()).display()
-        )?;
-        writeln!(handle, "\n\n")?;
+        writeln!(handle, "Dir\t: {}", self.get_output_dir().display())?;
+        writeln!(handle, "Read 1\t: {}", self.get_concat_name_r1())?;
+        writeln!(handle, "Read 2\t: {}", self.get_concat_name_r2())?;
+        writeln!(handle, "\n")?;
         Ok(())
     }
 
@@ -249,10 +243,9 @@ mod test {
         let id = "Genus_ephithet_unknown";
         let path = ".";
         let outdir = "raw_reads";
-        let fname = "Genus_ephithet_unknown_R1.fastq.gq";
-        let res = Path::new(&outdir).join(&id).join(fname);
+        let res = Path::new(&outdir).join(&id);
 
         let concat = Concat::new(id, path, outdir);
-        assert_eq!(res, concat.get_output_fname(fname));
+        assert_eq!(res, concat.get_output_dir());
     }
 }

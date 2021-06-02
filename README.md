@@ -2,7 +2,7 @@
 
 [![Build Status](https://www.travis-ci.com/hhandika/fastq-merger.svg?branch=main)](https://www.travis-ci.com/hhandika/fastq-merger)
 
-CaFq is a command-line tool to concat fastq reads. The runtime is slower than concatenating gunzipped fastq files using the `cat` command, such as: `cat file_L001_R1.fastq.gz file_L002_R1.fastq.gz > file_R2.fastq.gz`. The app, however, allows for batch concatenating fastq files in nested directories with minimal effort (zero Bash coding skill needed) and a better control over your files (less chance to make mistakes that can cause losing data). The final file is typically smaller than `cat`.
+CaFq is a command-line tool to concat fastq reads. The runtime is slower than concatenating gunzipped fastq files using the `cat` command, such as: `cat file_L001_R1.fastq.gz file_L002_R1.fastq.gz > file_R2.fastq.gz`. The app, however, allows for batch concatenating fastq files in nested directories with minimal effort (zero Bash coding skill needed) and a better control over your files (minimal chance making mistakes that can cause losing data). The final file is typically smaller than using the `cat` command.
 
 ## Installation
 
