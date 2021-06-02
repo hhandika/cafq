@@ -187,7 +187,7 @@ impl<'a> Concat<'a> {
             "Read 2: {}",
             self.get_output_fname(&self.get_concat_name_r2()).display()
         )?;
-        writeln!(handle, "DONE!\n\n")?;
+        writeln!(handle, "\n\n")?;
         Ok(())
     }
 
