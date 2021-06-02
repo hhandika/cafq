@@ -9,7 +9,7 @@ CaFq is a command-line tool to concat fastq reads. The runtime is slower than co
 To install, please install [the Rust Compiler](https://www.rust-lang.org/learn/get-started) first, and then:
 
 ```
-cargo install cargo install --git https://github.com/hhandika/cafq
+cargo install --git https://github.com/hhandika/cafq
 ```
 
 Confirm the app properly installed:
