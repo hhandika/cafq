@@ -10,7 +10,7 @@ fn get_args(version: &str) -> ArgMatches {
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(
             App::new("new")
-                .about("Find sequences and generate input files")
+                .about("Finds sequences and generate input files")
                 .arg(
                     Arg::with_name("dir")
                         .short("d")
