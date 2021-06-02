@@ -31,6 +31,7 @@ impl<'a> Finder<'a> {
         seqs.iter().for_each(|(id, path)| {
             self.write_content(&mut line, &id, &path);
         });
+        println!("Done!");
         println!("Total samples: {}", seqs.len());
         self.print_saved_path();
     }
@@ -70,11 +71,7 @@ impl<'a> Finder<'a> {
 
     fn print_saved_path(&self) {
         let path = env::current_dir().unwrap();
-        println!(
-            "Done! The result is saved as {}/{}",
-            path.display(),
-            self.fname
-        );
+        println!("The result is saved as {}/{}", path.display(), self.fname);
     }
 
     fn re_matches_lazy(&self, fname: &str) -> bool {
