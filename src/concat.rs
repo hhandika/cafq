@@ -192,4 +192,31 @@ mod test {
         let contents = parse_input_file(path);
         assert_eq!(2, contents.len());
     }
+
+    #[test]
+    #[should_panic]
+    fn parse_invalid_input_test() {
+        let path = "test_files/invalid_input_test.conf";
+
+        let contents = parse_input_file(path);
+        assert_eq!(2, contents.len());
+    }
+
+    #[test]
+    fn regex_lanes_read1_test() {
+        let fname = "genus_epithet_unknown_l001_read1_001.fastq.gz";
+        let fname2 = "genus_epithet_unknown_l001_read2_001.fastq.gz";
+        let test = Merge::new(".", ".");
+        assert_eq!(true, test.re_matches_r1(fname));
+        assert_eq!(false, test.re_matches_r1(fname2));
+    }
+
+    #[test]
+    fn regex_lanes_read2_test() {
+        let fname = "genus_epithet_unknown_l001_read1_001.fastq.gz";
+        let fname2 = "genus_epithet_unknown_l001_read2_001.fastq.gz";
+        let test = Merge::new(".", ".");
+        assert_eq!(false, test.re_matches_r2(fname));
+        assert_eq!(true, test.re_matches_r2(fname2));
+    }
 }
