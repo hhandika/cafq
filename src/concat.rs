@@ -8,6 +8,7 @@ use flate2::bufread::MultiGzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use glob::{self, MatchOptions};
+use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 use regex::Regex;
 
@@ -16,6 +17,8 @@ use crate::utils;
 pub fn concat_fastq_files(path: &str, outdir: &str) {
     let contents = parse_input_file(path);
     println!("Total samples: {}", contents.len());
+    let spin = set_spinner();
+    spin.set_message("Processing...");
     contents.par_iter().for_each(|(id, path)| {
         let mut reads = Concat::new(id, path, outdir);
         let samples = reads.glob_samples();
@@ -24,7 +27,7 @@ pub fn concat_fastq_files(path: &str, outdir: &str) {
         reads.concat_lanes_all();
         reads.print_results().expect("CANNOT PRINT TO STDOUT");
     });
-
+    spin.finish();
     println!("COMPLETED!\n");
 }
 
@@ -46,6 +49,13 @@ fn parse_input_file(path: &str) -> HashMap<String, String> {
             contents.entry(id).or_insert(path); // Avoid duplicates
         });
     contents
+}
+
+fn set_spinner() -> ProgressBar {
+    let spin = ProgressBar::new_spinner();
+    spin.enable_steady_tick(150);
+    spin.set_style(ProgressStyle::default_spinner().template("{spinner:.simpleDots} {msg}"));
+    spin
 }
 
 struct Concat<'a> {
@@ -155,30 +165,29 @@ impl<'a> Concat<'a> {
         let io = io::stdout();
         let mut handle = io::BufWriter::new(io);
         self.print_header();
+        writeln!(handle, "Path: {}\n", self.path)?;
         writeln!(handle, "\x1b[0;33mREAD 1:\x1b[0m")?;
-        self.read_1
-            .iter()
-            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
+        self.read_1.iter().for_each(|file| {
+            writeln!(handle, "{}", file.file_name().unwrap().to_string_lossy()).unwrap()
+        });
         writeln!(handle)?;
         writeln!(handle, "\x1b[0;33mREAD 2:\x1b[0m")?;
-        self.read_2
-            .iter()
-            .for_each(|file| writeln!(handle, "{:?}", file).unwrap());
+        self.read_2.iter().for_each(|file| {
+            writeln!(handle, "{}", file.file_name().unwrap().to_string_lossy()).unwrap()
+        });
         writeln!(handle)?;
         writeln!(handle, "\x1b[0;33mResults:\x1b[0m")?;
         writeln!(
             handle,
             "Read 1: {}",
-            self.get_output_fname(&self.get_concat_name_r1())
-                .to_string_lossy()
+            self.get_output_fname(&self.get_concat_name_r1()).display()
         )?;
         writeln!(
             handle,
             "Read 2: {}",
-            self.get_output_fname(&self.get_concat_name_r2())
-                .to_string_lossy()
+            self.get_output_fname(&self.get_concat_name_r2()).display()
         )?;
-        writeln!(handle)?;
+        writeln!(handle, "DONE!\n\n")?;
         Ok(())
     }
 
